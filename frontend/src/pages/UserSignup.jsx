@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { UserDataContext } from '../context/UserContext'
+import { API_BASE_URL } from '../config'
 
 
 
@@ -32,20 +33,24 @@ const UserSignup = () => {
       password: password
     }
 
-    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/register`, newUser)
+    try {
+      const response = await axios.post(`${API_BASE_URL}/users/register`, newUser)
 
-    if (response.status === 201) {
-      const data = response.data
-      setUser(data.user)
-      localStorage.setItem('token', data.token)
-      navigate('/home')
+      if (response.status === 201) {
+        const data = response.data
+        setUser(data.user)
+        localStorage.setItem('token', data.token)
+        navigate('/home')
+      }
+
+      setEmail('')
+      setFirstName('')
+      setLastName('')
+      setPassword('')
+    } catch (error) {
+      console.error('Registration error:', error.response?.data || error.message)
+      alert('Registration failed: ' + (error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || 'Unknown error'))
     }
-
-
-    setEmail('')
-    setFirstName('')
-    setLastName('')
-    setPassword('')
 
   }
   return (

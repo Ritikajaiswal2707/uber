@@ -1,5 +1,5 @@
 const rideModel = require('../models/ride.model');
-const mapService = require('./maps.service');
+const mapService = require('./map.service');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
