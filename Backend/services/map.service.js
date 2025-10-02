@@ -2,24 +2,14 @@ const axios = require('axios');
 const captainModel = require('../models/captain.model');
 
 module.exports.getAddressCoordinate = async (address) => {
-    const apiKey = process.env.GOOGLE_MAPS_API;
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
-
-    try {
-        const response = await axios.get(url);
-        if (response.data.status === 'OK') {
-            const location = response.data.results[ 0 ].geometry.location;
-            return {
-                ltd: location.lat,
-                lng: location.lng
-            };
-        } else {
-            throw new Error('Unable to fetch coordinates');
-        }
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+    // Fallback coordinates for Mumbai (for testing without billing)
+    console.log(`Using fallback coordinates for: ${address}`);
+    
+    // Return Mumbai coordinates
+    return {
+        ltd: 19.0760,  // Mumbai latitude
+        lng: 72.8777   // Mumbai longitude
+    };
 }
 
 module.exports.getDistanceTime = async (origin, destination) => {
@@ -27,29 +17,21 @@ module.exports.getDistanceTime = async (origin, destination) => {
         throw new Error('Origin and destination are required');
     }
 
-    const apiKey = process.env.GOOGLE_MAPS_API;
-
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&key=${apiKey}`;
-
-    try {
-
-
-        const response = await axios.get(url);
-        if (response.data.status === 'OK') {
-
-            if (response.data.rows[ 0 ].elements[ 0 ].status === 'ZERO_RESULTS') {
-                throw new Error('No routes found');
-            }
-
-            return response.data.rows[ 0 ].elements[ 0 ];
-        } else {
-            throw new Error('Unable to fetch distance and time');
-        }
-
-    } catch (err) {
-        console.error(err);
-        throw err;
-    }
+    // Fallback data for testing without billing
+    console.log(`Using fallback distance/time for: ${origin} -> ${destination}`);
+    
+    // Return mock distance and time data
+    return {
+        distance: {
+            text: '5.2 km',
+            value: 5200
+        },
+        duration: {
+            text: '15 mins',
+            value: 900
+        },
+        status: 'OK'
+    };
 }
 
 module.exports.getAutoCompleteSuggestions = async (input) => {
@@ -57,36 +39,35 @@ module.exports.getAutoCompleteSuggestions = async (input) => {
         throw new Error('query is required');
     }
 
-    const apiKey = process.env.GOOGLE_MAPS_API;
-    const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}`;
+    // Fallback suggestions for testing without billing
+    const fallbackSuggestions = [
+        `${input}, Mumbai, Maharashtra, India`,
+        `${input}, Delhi, Delhi, India`,
+        `${input}, Bangalore, Karnataka, India`,
+        `${input}, Chennai, Tamil Nadu, India`,
+        `${input}, Kolkata, West Bengal, India`
+    ];
 
-    try {
-        const response = await axios.get(url);
-        if (response.data.status === 'OK') {
-            return response.data.predictions.map(prediction => prediction.description).filter(value => value);
-        } else {
-            throw new Error('Unable to fetch suggestions');
-        }
-    } catch (err) {
-        console.error(err);
-        throw err;
-    }
+    console.log(`Using fallback suggestions for: ${input}`);
+    return fallbackSuggestions;
 }
 
 module.exports.getCaptainsInTheRadius = async (ltd, lng, radius) => {
 
     // radius in km
-
-
+    // For testing: find ALL captains since fallback coordinates might not match
+    console.log(`Searching for captains near lat: ${ltd}, lng: ${lng}, radius: ${radius}km`);
+    
+    // Find all captains with socket connections (regardless of status for testing)
     const captains = await captainModel.find({
-        location: {
-            $geoWithin: {
-                $centerSphere: [ [ ltd, lng ], radius / 6371 ]
-            }
-        }
+        socketId: { $exists: true, $ne: null } // Only captains with socket connections
     });
 
+    console.log(`Found ${captains.length} captains total (for testing)`);
+    captains.forEach(captain => {
+        console.log(`Captain: ${captain._id}, SocketId: ${captain.socketId}, Status: ${captain.status}, Location: ${JSON.stringify(captain.location)}`);
+    });
+    
     return captains;
-
 
 }

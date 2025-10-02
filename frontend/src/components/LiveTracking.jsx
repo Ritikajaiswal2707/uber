@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { LoadScript, GoogleMap, Marker } from '@react-google-maps/api'
 
 const containerStyle = {
     width: '100%',
@@ -54,15 +53,17 @@ const LiveTracking = () => {
     }, []);
 
     return (
-        <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
-            <GoogleMap
-                mapContainerStyle={containerStyle}
-                center={currentPosition}
-                zoom={15}
-            >
-                <Marker position={currentPosition} />
-            </GoogleMap>
-        </LoadScript>
+        <div style={containerStyle} className="flex items-center justify-center bg-gray-100">
+            <div className="text-center">
+                <div className="mb-4">
+                    <div className="inline-block w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="ml-2">Live Tracking</span>
+                </div>
+                <p className="text-sm text-gray-600">Lat: {currentPosition.lat.toFixed(6)}</p>
+                <p className="text-sm text-gray-600">Lng: {currentPosition.lng.toFixed(6)}</p>
+                <p className="text-xs text-gray-500 mt-2">Captains in your area</p>
+            </div>
+        </div>
     )
 }
 

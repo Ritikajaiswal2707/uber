@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom' // Added useLocation
 import { useEffect, useContext } from 'react'
 import { SocketContext } from '../context/SocketContext'
@@ -10,10 +10,18 @@ const Riding = () => {
     const { ride } = location.state || {} // Retrieve ride data
     const { socket } = useContext(SocketContext)
     const navigate = useNavigate()
+    const [paid, setPaid] = useState(false)
 
-    socket.on("ride-ended", () => {
-        navigate('/home')
-    })
+    useEffect(() => {
+        socket.on("ride-ended", () => {
+            navigate('/home')
+        })
+    }, [socket, navigate])
+
+    const handlePayment = () => {
+        alert(`Payment of ₹${ride?.fare} completed!\nThank you for choosing Uber!`)
+        setPaid(true)
+    }
 
 
     return (
@@ -55,7 +63,13 @@ const Riding = () => {
                         </div>
                     </div>
                 </div>
-                <button className='w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg'>Make a Payment</button>
+                <button 
+                    onClick={handlePayment}
+                    className='w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg'
+                    disabled={paid}
+                >
+                    {paid ? 'Payment Completed ✓' : 'Make a Payment'}
+                </button>
             </div>
         </div>
     )

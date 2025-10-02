@@ -60,6 +60,16 @@ const captainSchema = new mongoose.Schema({
     },
 
     location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number], // [longitude, latitude]
+            default: [0, 0]
+        },
+        // Keep legacy fields for backward compatibility
         ltd: {
             type: Number,
         },
@@ -69,6 +79,8 @@ const captainSchema = new mongoose.Schema({
     }
 })
 
+// Add geospatial index for location queries
+captainSchema.index({ 'location': '2dsphere' });
 
 captainSchema.methods.generateAuthToken = function () {
     const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: '24h' });

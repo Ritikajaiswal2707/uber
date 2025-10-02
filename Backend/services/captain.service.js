@@ -19,6 +19,12 @@ module.exports.createCaptain = async ({
             plate,
             capacity,
             vehicleType
+        },
+        location: {
+            type: 'Point',
+            coordinates: [0, 0], // Default coordinates [longitude, latitude]
+            ltd: 0,
+            lng: 0
         }
     })
 
