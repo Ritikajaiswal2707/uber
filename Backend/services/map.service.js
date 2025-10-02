@@ -39,18 +39,39 @@ module.exports.getDistanceTime = async (origin, destination) => {
         throw new Error('Origin and destination are required');
     }
 
-    // Fallback data for testing without billing
-    console.log(`Using fallback distance/time for: ${origin} -> ${destination}`);
+    console.log(`Calculating distance/time for: ${origin} -> ${destination}`);
     
-    // Return mock distance and time data
+    // Get coordinates for origin and destination
+    const originCoords = await module.exports.getAddressCoordinate(origin);
+    const destCoords = await module.exports.getAddressCoordinate(destination);
+    
+    // Calculate distance using Haversine formula
+    const distance = calculateDistance(originCoords.ltd, originCoords.lng, destCoords.ltd, destCoords.lng);
+    
+    // Calculate duration based on distance (assuming average speed of 25 km/h in city traffic)
+    const durationMinutes = Math.round((distance / 1000) * (60 / 25)); // Convert km to minutes at 25km/hour
+    const durationSeconds = durationMinutes * 60;
+    
+    // Format distance
+    const distanceText = distance >= 1000 ? 
+        `${(distance/1000).toFixed(1)} km` : 
+        `${Math.round(distance)} m`;
+    
+    // Format duration  
+    const durationText = durationMinutes >= 60 ? 
+        `${Math.floor(durationMinutes/60)}h ${durationMinutes%60}m` :
+        `${durationMinutes} mins`;
+    
+    console.log(`Calculated: ${distanceText} ("${distance}m"), ${durationText} ("${durationSeconds}s")`);
+    
     return {
         distance: {
-            text: '5.2 km',
-            value: 5200
+            text: distanceText,
+            value: distance
         },
         duration: {
-            text: '15 mins',
-            value: 900
+            text: durationText,
+            value: durationSeconds
         },
         status: 'OK'
     };
@@ -127,4 +148,17 @@ module.exports.getCaptainsInTheRadius = async (ltd, lng, radius) => {
     });
     
     return captains;
+}
+
+// Haversine formula to calculate distance between two coordinates
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // Earth's radius in meters
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in meters
+    return Math.round(distance);
 }
