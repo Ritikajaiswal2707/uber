@@ -49,7 +49,20 @@ const UserSignup = () => {
       setPassword('')
     } catch (error) {
       console.error('Registration error:', error.response?.data || error.message)
-      alert('Registration failed: ' + (error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || 'Unknown error'))
+      console.error('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        url: `${API_BASE_URL}/users/register`
+      })
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.errors?.[0]?.msg || 
+                          error.response?.statusText || 
+                          'Unknown error'
+      
+      alert(`Registration failed: ${errorMessage}`)
     }
 
   }
