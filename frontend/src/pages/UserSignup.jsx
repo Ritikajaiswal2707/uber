@@ -34,6 +34,9 @@ const UserSignup = () => {
     }
 
     try {
+      console.log('Sending registration request to:', `${API_BASE_URL}/users/register`)
+      console.log('Request data:', newUser)
+      
       const response = await axios.post(`${API_BASE_URL}/users/register`, newUser)
 
       if (response.status === 201) {
@@ -48,21 +51,31 @@ const UserSignup = () => {
       setLastName('')
       setPassword('')
     } catch (error) {
-      console.error('Registration error:', error.response?.data || error.message)
-      console.error('Error details:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        message: error.message,
-        url: `${API_BASE_URL}/users/register`
-      })
+      console.error('Registration error:', error)
+      console.error('Full error object:', JSON.stringify(error, null, 2))
       
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.errors?.[0]?.msg || 
-                          error.response?.statusText || 
-                          'Unknown error'
-      
-      alert(`Registration failed: ${errorMessage}`)
+      if (error.response) {
+        console.error('Response error details:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: error.response.headers,
+          url: `${API_BASE_URL}/users/register`
+        })
+        
+        const errorMessage = error.response.data?.message || 
+                            error.response.data?.errors?.[0]?.msg || 
+                            error.response.statusText || 
+                            JSON.stringify(error.response.data)
+        
+        alert(`Registration failed: ${errorMessage}`)
+      } else if (error.request) {
+        console.error('Request error (no response):', error.request)
+        alert(`Registration failed: No response from server. Check if backend is running.`)
+      } else {
+        console.error('Other error:', error.message)
+        alert(`Registration failed: ${error.message}`)
+      }
     }
 
   }
