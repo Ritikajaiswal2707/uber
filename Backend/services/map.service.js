@@ -2,14 +2,36 @@ const axios = require('axios');
 const captainModel = require('../models/captain.model');
 
 module.exports.getAddressCoordinate = async (address) => {
-    // Fallback coordinates for Bangalore (to match captain locations in testing)
     console.log(`Using fallback coordinates for: ${address}`);
     
-    // Return Bangalore coordinates (where captains are actually located)
-    return {
-        ltd: 12.93649702197792,  // Bangalore latitude (from logs)
-        lng: 77.56964622561713   // Bangalore longitude (from logs)
-    };
+    // Return different coordinates based on city mentioned in address
+    let ltd, lng;
+    
+    if (address.toLowerCase().includes('mumbai')) {
+        ltd = 19.0760; lng = 72.8777;
+    } else if (address.toLowerCase().includes('delhi')) {
+        ltd = 28.7041; lng = 77.1025;
+    } else if (address.toLowerCase().includes('bangalore') || address.toLowerCase().includes('bengaluru')) {
+        ltd = 12.9716; lng = 77.5946;
+    } else if (address.toLowerCase().includes('chennai')) {
+        ltd = 13.0827; lng = 80.2707;
+    } else if (address.toLowerCase().includes('kolkata')) {
+        ltd = 22.5726; lng = 88.3639;
+    } else if (address.toLowerCase().includes('hyderabad')) {
+        ltd = 17.3850; lng = 78.4867;
+    } else if (address.toLowerCase().includes('pune')) {
+        ltd = 18.5204; lng = 73.8567;
+    } else if (address.toLowerCase().includes('ahmedabad')) {
+        ltd = 23.0225; lng = 72.5714;
+    } else if (address.toLowerCase().includes('jaipur')) {
+        ltd = 26.9124; lng = 75.7873;
+    } else {
+        // Default to Bangalore (where captains are located for testing)
+        ltd = 12.93649702197792;
+        lng = 77.56964622561713;
+    }
+    
+    return { ltd, lng };
 }
 
 module.exports.getDistanceTime = async (origin, destination) => {
@@ -45,7 +67,27 @@ module.exports.getAutoCompleteSuggestions = async (input) => {
         `${input}, Delhi, Delhi, India`,
         `${input}, Bangalore, Karnataka, India`,
         `${input}, Chennai, Tamil Nadu, India`,
-        `${input}, Kolkata, West Bengal, India`
+        `${input}, Kolkata, West Bengal, India`,
+        `${input}, Hyderabad, Telangana, India`,
+        `${input}, Pune, Maharashtra, India`,
+        `${input}, Ahmedabad, Gujarat, India`,
+        `${input}, Jaipur, Rajasthan, India`,
+        `${input}, Surat, Gujarat, India`,
+        `${input}, Lucknow, Uttar Pradesh, India`,
+        `${input}, Kanpur, Uttar Pradesh, India`,
+        `${input}, Nagpur, Maharashtra, India`,
+        `${input}, Indore, Madhya Pradesh, India`,
+        `${input}, Thane, Maharashtra, India`,
+        `${input}, Bhopal, Madhya Pradesh, India`,
+        `${input}, Visakhapatnam, Andhra Pradesh, India`,
+        `${input}, Patna, Bihar, India`,
+        `${input}, Vadodara, Gujarat, India`,
+        `${input}, Ghaziabad, Uttar Pradesh, India`,
+        `${input}, Coimbatore, Tamil Nadu, India`,
+        `${input}, Kochi, Kerala, India`,
+        `${input}, Chandigarh, Punjab, India`,
+        `${input}, Guwahati, Assam, India`,
+        `${input}, Mysore, Karnataka, India`
     ];
 
     console.log(`Using fallback suggestions for: ${input}`);
