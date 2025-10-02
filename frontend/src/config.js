@@ -1,5 +1,5 @@
 // Configuration file for API endpoints
-// Hardcoded for now until Vercel env variable is fixed
+// Using deployed backend (will be updated once backend debugging is complete)
 export const API_BASE_URL = 'https://uber-backend-api-1.onrender.com';
 
 // Debug log to see what URL is being used
