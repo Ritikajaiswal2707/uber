@@ -50,3 +50,9 @@ AppData/Local/Temporary/
 # Cache files
 .cache/
 .parcel-cache/
+
+# Deployment directories
+backend-deploy/
+frontend/dist/
+frontend/api/
+
