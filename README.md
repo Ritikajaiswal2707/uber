@@ -1,4 +1,4 @@
-# 🚗 My Uber Clone - Ride Sharing App
+# 🚗 My Uber Clone - Ride Booking App
 
 > **A full-stack, real-time ride-sharing application built with React and Node.js**
 
