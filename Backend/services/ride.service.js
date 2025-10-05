@@ -3,20 +3,22 @@ const mapService = require('./map.service');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
+// Calculate fare based on distance and time
 async function getFare(pickup, destination) {
-
     if (!pickup || !destination) {
         throw new Error('Pickup and destination are required');
     }
 
     const distanceTime = await mapService.getDistanceTime(pickup, destination);
 
+    // Base fare for different vehicle types
     const baseFare = {
         auto: 30,
         car: 50,
         moto: 20
     };
 
+    // Per km rates (in rupees)
     const perKmRate = {
         auto: 10,
         car: 15,
@@ -29,8 +31,7 @@ async function getFare(pickup, destination) {
         moto: 1.5
     };
 
-
-
+    // Calculate total fare for each vehicle type
     const fare = {
         auto: Math.round(baseFare.auto + ((distanceTime.distance.value / 1000) * perKmRate.auto) + ((distanceTime.duration.value / 60) * perMinuteRate.auto)),
         car: Math.round(baseFare.car + ((distanceTime.distance.value / 1000) * perKmRate.car) + ((distanceTime.duration.value / 60) * perMinuteRate.car)),
@@ -38,13 +39,12 @@ async function getFare(pickup, destination) {
     };
 
     return fare;
-
-
 }
 
 module.exports.getFare = getFare;
 
 
+// Generate random OTP
 function getOtp(num) {
     function generateOtp(num) {
         const otp = crypto.randomInt(Math.pow(10, num - 1), Math.pow(10, num)).toString();
@@ -54,6 +54,7 @@ function getOtp(num) {
 }
 
 
+// Create a new ride
 module.exports.createRide = async ({
     user, pickup, destination, vehicleType
 }) => {
@@ -63,14 +64,13 @@ module.exports.createRide = async ({
 
     const fare = await getFare(pickup, destination);
 
-
-
+    // TODO: Add surge pricing logic here
     const ride = rideModel.create({
         user,
         pickup,
         destination,
         otp: getOtp(6),
-        fare: fare[ vehicleType ]
+        fare: fare[vehicleType]
     })
 
     return ride;
@@ -107,21 +107,30 @@ module.exports.startRide = async ({ rideId, otp, captain }) => {
         throw new Error('Ride id and OTP are required');
     }
 
+    console.log('Service: Starting ride - RideId:', rideId, 'OTP:', otp, 'Captain:', captain._id);
+
     const ride = await rideModel.findOne({
         _id: rideId
     }).populate('user').populate('captain').select('+otp');
 
     if (!ride) {
+        console.log('Service: Ride not found for ID:', rideId);
         throw new Error('Ride not found');
     }
 
+    console.log('Service: Found ride - Status:', ride.status, 'Stored OTP:', ride.otp, 'Provided OTP:', otp);
+
     if (ride.status !== 'accepted') {
+        console.log('Service: Ride not accepted, current status:', ride.status);
         throw new Error('Ride not accepted');
     }
 
     if (ride.otp !== otp) {
+        console.log('Service: OTP mismatch - Expected:', ride.otp, 'Got:', otp);
         throw new Error('Invalid OTP');
     }
+
+    console.log('Service: OTP verified, updating ride status to ongoing');
 
     await rideModel.findOneAndUpdate({
         _id: rideId
@@ -129,6 +138,7 @@ module.exports.startRide = async ({ rideId, otp, captain }) => {
         status: 'ongoing'
     })
 
+    console.log('Service: Ride status updated successfully');
     return ride;
 }
 

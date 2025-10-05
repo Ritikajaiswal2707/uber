@@ -4,7 +4,7 @@ const mapService = require('../services/map.service');
 const { sendMessageToSocketId } = require('../socket');
 const rideModel = require('../models/ride.model');
 
-
+// Main ride creation endpoint
 module.exports.createRide = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -20,17 +20,21 @@ module.exports.createRide = async (req, res) => {
             return res.status(401).json({ message: 'User not authenticated' });
         }
         
+        // Create the ride first
         const ride = await rideService.createRide({ user: req.user._id, pickup, destination, vehicleType });
         res.status(201).json(ride);
 
         const pickupCoordinates = await mapService.getAddressCoordinate(pickup);
         console.log('Pickup coordinates:', pickupCoordinates);
 
+        // Find nearby captains (2km radius)
         const captainsInRadius = await mapService.getCaptainsInTheRadius(pickupCoordinates.ltd, pickupCoordinates.lng, 2);
         console.log(`Found ${captainsInRadius.length} captains in radius`);
 
+        // Get ride with user details for sending to captains
         const rideWithUser = await rideModel.findOne({ _id: ride._id }).populate('user');
 
+        // Notify all nearby captains about the new ride
         captainsInRadius.forEach(captain => {
             console.log(`Sending ride to captain: ${captain._id}, SocketId: ${captain.socketId}`);
             sendMessageToSocketId(captain.socketId, {
@@ -89,15 +93,23 @@ module.exports.confirmRide = async (req, res) => {
 module.exports.startRide = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.log('Validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
 
     const { rideId, otp } = req.query;
 
     try {
+        console.log('Starting ride - RideId:', rideId, 'OTP:', otp, 'Captain:', req.captain ? req.captain._id : 'NO CAPTAIN');
+        
+        if (!req.captain) {
+            console.log('No captain found in request');
+            return res.status(401).json({ message: 'Captain not authenticated' });
+        }
+
         const ride = await rideService.startRide({ rideId, otp, captain: req.captain });
 
-        console.log(ride);
+        console.log('Ride started successfully:', ride._id);
 
         sendMessageToSocketId(ride.user.socketId, {
             event: 'ride-started',
@@ -106,6 +118,7 @@ module.exports.startRide = async (req, res) => {
 
         return res.status(200).json(ride);
     } catch (err) {
+        console.log('Error starting ride:', err.message);
         return res.status(500).json({ message: err.message });
     }
 }

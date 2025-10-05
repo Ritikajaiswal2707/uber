@@ -5,29 +5,50 @@ import { API_BASE_URL } from '../config'
 import { useNavigate } from 'react-router-dom'
 
 const ConfirmRidePopUp = (props) => {
-    const [ otp, setOtp ] = useState('')
+    const [otp, setOtp] = useState('')
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
-    const submitHander = async (e) => {
+    const submitHandler = async (e) => {
         e.preventDefault()
+        setError('')
+        setLoading(true)
 
-        const response = await axios.get(`${API_BASE_URL}/rides/start-ride`, {
-            params: {
-                rideId: props.ride._id,
-                otp: otp
-            },
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
+        try {
+            // TODO: Add better validation here
+            console.log('Starting ride with OTP:', otp, 'for ride:', props.ride._id)
+            
+            const response = await axios.get(`${API_BASE_URL}/rides/start-ride`, {
+                params: {
+                    rideId: props.ride._id,
+                    otp: otp
+                },
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('captain-token')}`
+                }
+            })
+
+            console.log('OTP verification successful:', response.data)
+
+            if (response.status === 200) {
+                props.setConfirmRidePopupPanel(false)
+                props.setRidePopupPanel(false)
+                navigate('/captain-riding', { state: { ride: props.ride } })
             }
-        })
-
-        if (response.status === 200) {
-            props.setConfirmRidePopupPanel(false)
-            props.setRidePopupPanel(false)
-            navigate('/captain-riding', { state: { ride: props.ride } })
+        } catch (error) {
+            console.error('OTP verification failed:', error)
+            
+            if (error.response) {
+                const errorMessage = error.response.data?.message || 'OTP verification failed'
+                setError(errorMessage)
+                console.error('Backend error:', errorMessage)
+            } else {
+                setError('Network error. Please try again.')
+            }
+        } finally {
+            setLoading(false)
         }
-
-
     }
     return (
         <div>
@@ -68,15 +89,42 @@ const ConfirmRidePopUp = (props) => {
                 </div>
 
                 <div className='mt-6 w-full'>
-                    <form onSubmit={submitHander}>
-                        <input value={otp} onChange={(e) => setOtp(e.target.value)} type="text" className='bg-[#eee] px-6 py-4 font-mono text-lg rounded-lg w-full mt-3' placeholder='Enter OTP' />
+                    <form onSubmit={submitHandler}>
+                        <input 
+                            value={otp} 
+                            onChange={(e) => setOtp(e.target.value)} 
+                            type="text" 
+                            className='bg-[#eee] px-6 py-4 font-mono text-lg rounded-lg w-full mt-3' 
+                            placeholder='Enter OTP' 
+                            maxLength="6"
+                            disabled={loading}
+                        />
 
-                        <button className='w-full mt-5 text-lg flex justify-center bg-green-600 text-white font-semibold p-3 rounded-lg'>Confirm</button>
-                        <button onClick={() => {
-                            props.setConfirmRidePopupPanel(false)
-                            props.setRidePopupPanel(false)
+                        {error && (
+                            <div className='mt-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg'>
+                                <p className='text-sm'>{error}</p>
+                            </div>
+                        )}
 
-                        }} className='w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg'>Cancel</button>
+                        <button 
+                            type="submit"
+                            disabled={loading || otp.length !== 6}
+                            className='w-full mt-5 text-lg flex justify-center bg-green-600 text-white font-semibold p-3 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed'
+                        >
+                            {loading ? 'Verifying...' : 'Confirm'}
+                        </button>
+                        
+                        <button 
+                            type="button"
+                            onClick={() => {
+                                props.setConfirmRidePopupPanel(false)
+                                props.setRidePopupPanel(false)
+                            }} 
+                            className='w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg'
+                            disabled={loading}
+                        >
+                            Cancel
+                        </button>
 
                     </form>
                 </div>
