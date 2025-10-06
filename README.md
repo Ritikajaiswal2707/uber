@@ -18,6 +18,12 @@ This application allows:
 - **Payment processing** (simulated)
 - **Socket.io integration** for live updates
 
+## 🎥 Demo Video
+
+[![Uber Clone Demo](https://img.youtube.com/vi/h9SwWosbmCc/0.jpg)](https://youtube.com/shorts/h9SwWosbmCc?feature=share)
+
+**🎬 Watch the complete demo video above to see the app in action!**
+
 ## 🚀 Live Demo
 
 - **Frontend:** [Live on Vercel](https://uber-n4pr-git-main-ritika-jaiswals-projects-78ffa39f.vercel.app) 
